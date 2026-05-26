@@ -1,5 +1,7 @@
 package fr.maxlego08.sarah.conditions;
 
+import fr.maxlego08.sarah.dialect.SqlDialect;
+
 public class JoinCondition {
     private final String primaryTable;
     private final String primaryTableAlias;
@@ -43,8 +45,25 @@ public class JoinCondition {
         return joinClause.toString();
     }
 
+    public String getJoinClause(SqlDialect dialect) {
+        StringBuilder joinClause = new StringBuilder();
+        joinClause.append(this.joinType.getSql()).append(" ")
+                .append(this.primaryTable).append(" AS ").append(this.primaryTableAlias)
+                .append(" ON ").append(dialect.qualifyIdentifier(this.primaryTableAlias, this.primaryColumn))
+                .append(" = ").append(dialect.qualifyIdentifier(this.foreignTable, this.foreignColumn));
+
+        if (this.additionalCondition != null) {
+            joinClause.append(" AND ").append(this.additionalCondition.getCondition(dialect));
+        }
+        return joinClause.toString();
+    }
+
     private String getCondition() {
         return this.primaryTableAlias + "." + this.primaryColumn + " = '" + this.foreignColumn + "'";
+    }
+
+    private String getCondition(SqlDialect dialect) {
+        return dialect.qualifyIdentifier(this.primaryTableAlias, this.primaryColumn) + " = '" + this.foreignColumn + "'";
     }
 
     public enum JoinType {

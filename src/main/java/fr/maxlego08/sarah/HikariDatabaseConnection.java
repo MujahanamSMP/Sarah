@@ -3,6 +3,8 @@ package fr.maxlego08.sarah;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import fr.maxlego08.sarah.database.DatabaseType;
+import fr.maxlego08.sarah.dialect.SqlDialect;
+import fr.maxlego08.sarah.dialect.SqlDialects;
 import fr.maxlego08.sarah.exceptions.DatabaseException;
 import fr.maxlego08.sarah.logger.Logger;
 
@@ -38,17 +40,11 @@ public class HikariDatabaseConnection extends DatabaseConnection {
         config.setPoolName("sarah-" + POOL_COUNTER.getAndIncrement());
 
         DatabaseType databaseType = databaseConfiguration.getDatabaseType();
+        SqlDialect dialect = SqlDialects.from(databaseType);
 
         // URL + Driver
-        final String jdbcUrl;
-        if (databaseType == DatabaseType.MARIADB) {
-            jdbcUrl = "jdbc:mariadb://" + databaseConfiguration.getHost() + ":" + databaseConfiguration.getPort() + "/" + databaseConfiguration.getDatabase() + "?allowMultiQueries=true";
-            config.setDriverClassName("org.mariadb.jdbc.Driver");
-        } else {
-            jdbcUrl = "jdbc:mysql://" + databaseConfiguration.getHost() + ":" + databaseConfiguration.getPort() + "/" + databaseConfiguration.getDatabase() + "?allowMultiQueries=true";
-            config.setDriverClassName("com.mysql.cj.jdbc.Driver");
-        }
-        config.setJdbcUrl(jdbcUrl);
+        config.setJdbcUrl(dialect.jdbcUrl(databaseConfiguration));
+        config.setDriverClassName(dialect.driverClassName());
 
         // Auth
         config.setUsername(databaseConfiguration.getUser());
