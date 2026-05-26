@@ -70,10 +70,13 @@ public class HikariDatabaseConnection extends DatabaseConnection {
         config.setLeakDetectionThreshold(LEAK_DETECTION_THRESHOLD);
 
         Map<String, String> commonProps = new HashMap<>();
-        commonProps.put("useSSL", "false");
-        commonProps.put("useUnicode", "true");
-        commonProps.put("characterEncoding", "utf8");
-        commonProps.put("socketTimeout", String.valueOf(TimeUnit.SECONDS.toMillis(30)));
+
+        if (databaseType == DatabaseType.MYSQL || databaseType == DatabaseType.MARIADB) {
+            commonProps.put("useSSL", "false");
+            commonProps.put("useUnicode", "true");
+            commonProps.put("characterEncoding", "utf8");
+            commonProps.put("socketTimeout", String.valueOf(TimeUnit.SECONDS.toMillis(30)));
+        }
 
         if (databaseType == DatabaseType.MYSQL) {
             commonProps.put("cachePrepStmts", "true");
@@ -88,6 +91,10 @@ public class HikariDatabaseConnection extends DatabaseConnection {
             commonProps.put("maintainTimeStats", "false");
             commonProps.put("alwaysSendSetIsolation", "false");
             commonProps.put("cacheCallableStmts", "true");
+        }
+
+        if (databaseType == DatabaseType.POSTGRESQL) {
+            commonProps.put("socketTimeout", "30");
         }
 
         for (Map.Entry<String, String> e : commonProps.entrySet()) {

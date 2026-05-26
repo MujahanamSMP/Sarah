@@ -39,6 +39,34 @@ public class PostgreSqlDialect extends AbstractSqlDialect {
     }
 
     @Override
+    public String columnType(ColumnDefinition column) {
+        String baseType = column.getType();
+        if (baseType != null) {
+            String mapped = mapType(baseType);
+            if (!mapped.equals(baseType)) {
+                column.setType(mapped);
+            }
+        }
+        return super.columnType(column);
+    }
+
+    private String mapType(String type) {
+        switch (type.toUpperCase(java.util.Locale.ROOT)) {
+            case "LONGTEXT":
+            case "MEDIUMTEXT":
+            case "TINYTEXT":
+                return "TEXT";
+            case "BLOB":
+            case "LONGBLOB":
+            case "MEDIUMBLOB":
+            case "TINYBLOB":
+                return "BYTEA";
+            default:
+                return type;
+        }
+    }
+
+    @Override
     public List<ColumnDefinition> missingColumns(DatabaseConnection connection, Logger logger, String tableName, List<ColumnDefinition> expectedColumns) {
         Objects.requireNonNull(connection, "connection");
         Objects.requireNonNull(tableName, "tableName");
