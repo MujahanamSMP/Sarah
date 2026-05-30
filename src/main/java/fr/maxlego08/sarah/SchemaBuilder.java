@@ -487,7 +487,9 @@ public class SchemaBuilder implements Schema {
 
     @Override
     public void whereConditions(StringBuilder sql) {
-        whereConditions(sql, SqlDialects.from(DatabaseType.MYSQL));
+        DatabaseConfiguration configuration = MigrationManager.getDatabaseConfiguration();
+        SqlDialect dialect = configuration == null ? SqlDialects.from(DatabaseType.MYSQL) : SqlDialects.from(configuration.getDatabaseType());
+        whereConditions(sql, dialect);
     }
 
     @Override

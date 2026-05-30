@@ -4,6 +4,7 @@ import fr.maxlego08.sarah.conditions.JoinCondition;
 import fr.maxlego08.sarah.conditions.OrderByCondition;
 import fr.maxlego08.sarah.conditions.SelectCondition;
 import fr.maxlego08.sarah.conditions.WhereCondition;
+import fr.maxlego08.sarah.database.Schema;
 import fr.maxlego08.sarah.database.DatabaseType;
 import fr.maxlego08.sarah.dialect.SqlDialect;
 import fr.maxlego08.sarah.dialect.SqlDialects;
@@ -27,6 +28,24 @@ public class PostgreSqlConditionRenderingTest {
     public void testWhereInUsesDialectQuoting() {
         WhereCondition condition = new WhereCondition("u", "id", Arrays.asList("1", "2", "3"));
         assertEquals("u.\"id\" IN (?,?,?)", condition.getCondition(postgres));
+    }
+
+    @Test
+    public void testSchemaBuilderLegacyWhereConditionsUsesMigrationDialect() {
+        DatabaseConfiguration previous = MigrationManager.getDatabaseConfiguration();
+        try {
+            MigrationManager.setDatabaseConfiguration(DatabaseConfiguration.createPostgreSql("u", "p", 5432, "localhost", "db"));
+
+            Schema schema = SchemaBuilder.delete("users");
+            schema.where("name", "Sarah");
+
+            StringBuilder sql = new StringBuilder();
+            schema.whereConditions(sql);
+
+            assertEquals(" WHERE \"name\" = ?", sql.toString());
+        } finally {
+            MigrationManager.setDatabaseConfiguration(previous);
+        }
     }
 
     @Test
