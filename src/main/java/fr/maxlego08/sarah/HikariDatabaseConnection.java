@@ -42,6 +42,10 @@ public class HikariDatabaseConnection extends DatabaseConnection {
         DatabaseType databaseType = databaseConfiguration.getDatabaseType();
         SqlDialect dialect = SqlDialects.from(databaseType);
 
+        if (databaseType == DatabaseType.SQLITE) {
+            throw new UnsupportedOperationException("HikariDatabaseConnection does not support SQLITE. Use SqliteConnection for file-based SQLite databases.");
+        }
+
         // URL + Driver
         config.setJdbcUrl(dialect.jdbcUrl(databaseConfiguration));
         config.setDriverClassName(dialect.driverClassName());

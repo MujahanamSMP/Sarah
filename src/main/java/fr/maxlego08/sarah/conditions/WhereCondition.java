@@ -44,8 +44,8 @@ public class WhereCondition {
     }
 
     public String getCondition() {
-        if (this.whereAction == WhereAction.IS_NOT_NULL) return this.column + " IS NOT NULL";
-        if (this.whereAction == WhereAction.IS_NULL) return this.column + " IS NULL";
+        if (this.whereAction == WhereAction.IS_NOT_NULL) return this.legacyQualifiedColumn() + " IS NOT NULL";
+        if (this.whereAction == WhereAction.IS_NULL) return this.legacyQualifiedColumn() + " IS NULL";
         if (this.whereAction == WhereAction.IN) {
             return this.legacyQualifiedColumn() + " IN (" + values.stream().map(id -> "?").collect(Collectors.joining(",")) + ")";
         }
