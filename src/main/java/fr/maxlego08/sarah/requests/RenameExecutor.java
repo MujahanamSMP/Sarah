@@ -28,7 +28,12 @@ public class RenameExecutor implements Executor {
         StringBuilder alterTableSQL = new StringBuilder("ALTER TABLE ");
         alterTableSQL.append(dialect.quoteTableReference(this.schema.getTableName()));
         alterTableSQL.append(" RENAME TO ");
-        alterTableSQL.append(dialect.quoteTableReference(this.schema.getNewTableName()));
+        String newTable = this.schema.getNewTableName();
+        int lastDot = newTable.lastIndexOf('.');
+        if (lastDot != -1) {
+            newTable = newTable.substring(lastDot + 1);
+        }
+        alterTableSQL.append(dialect.quoteIdentifier(newTable));
 
         String finalQuery = databaseConfiguration.replacePrefix(alterTableSQL.toString());
         if (databaseConfiguration.isDebug()) {

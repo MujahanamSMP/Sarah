@@ -48,9 +48,9 @@ public class JoinCondition {
     public String getJoinClause(SqlDialect dialect) {
         StringBuilder joinClause = new StringBuilder();
         joinClause.append(this.joinType.getSql()).append(" ")
-                .append(this.primaryTable).append(" AS ").append(this.primaryTableAlias)
-                .append(" ON ").append(dialect.qualifyIdentifier(this.primaryTableAlias, this.primaryColumn))
-                .append(" = ").append(dialect.qualifyIdentifier(this.foreignTable, this.foreignColumn));
+                .append(dialect.quoteTableReference(this.primaryTable)).append(" AS ").append(dialect.quoteIdentifier(this.primaryTableAlias))
+                .append(" ON ").append(dialect.qualifyIdentifier(dialect.quoteIdentifier(this.primaryTableAlias), this.primaryColumn))
+                .append(" = ").append(dialect.qualifyIdentifier(dialect.quoteTableReference(this.foreignTable), this.foreignColumn));
 
         if (this.additionalCondition != null) {
             joinClause.append(" AND ").append(this.additionalCondition.getCondition(dialect));
@@ -63,7 +63,7 @@ public class JoinCondition {
     }
 
     private String getCondition(SqlDialect dialect) {
-        return dialect.qualifyIdentifier(this.primaryTableAlias, this.primaryColumn) + " = '" + this.foreignColumn + "'";
+        return dialect.qualifyIdentifier(dialect.quoteIdentifier(this.primaryTableAlias), this.primaryColumn) + " = '" + this.foreignColumn + "'";
     }
 
     public enum JoinType {

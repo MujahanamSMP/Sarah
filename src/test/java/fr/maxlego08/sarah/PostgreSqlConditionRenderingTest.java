@@ -71,7 +71,7 @@ public class PostgreSqlConditionRenderingTest {
                 "id",
                 null
         );
-        assertEquals("LEFT JOIN orders AS o ON o.\"user_id\" = users.\"id\"", join.getJoinClause(postgres));
+        assertEquals("LEFT JOIN \"orders\" AS \"o\" ON \"o\".\"user_id\" = \"users\".\"id\"", join.getJoinClause(postgres));
     }
 
     @Test

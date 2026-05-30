@@ -105,7 +105,7 @@ public class MigrationManager {
                 List<ColumnDefinition> mustBeAdd = new ArrayList<>();
 
                 String tableName = schema.getTableName();
-                tableName = tableName.replace("%prefix%", databaseConnection.getDatabaseConfiguration().getTablePrefix());
+                tableName = databaseConnection.getDatabaseConfiguration().replacePrefix(tableName);
 
                 SqlDialect dialect = SqlDialects.from(databaseConnection.getDatabaseConfiguration().getDatabaseType());
                 mustBeAdd.addAll(dialect.missingColumns(databaseConnection, logger, tableName, schema.getColumns()));
