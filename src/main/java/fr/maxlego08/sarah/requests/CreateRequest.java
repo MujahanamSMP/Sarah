@@ -30,7 +30,7 @@ public class CreateRequest implements Executor {
 
         SqlDialect dialect = SqlDialects.from(databaseConfiguration.getDatabaseType());
         StringBuilder createTableSQL = new StringBuilder("CREATE TABLE IF NOT EXISTS ");
-        createTableSQL.append(dialect.quoteIdentifier(this.schema.getTableName())).append(" (");
+        createTableSQL.append(dialect.quoteTableReference(this.schema.getTableName())).append(" (");
 
         List<String> columnSQLs = new ArrayList<>();
         boolean hasInlinePrimaryKey = false;

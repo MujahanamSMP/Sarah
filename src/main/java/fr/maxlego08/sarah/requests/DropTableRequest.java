@@ -29,7 +29,7 @@ public class DropTableRequest implements Executor {
         }
 
         SqlDialect dialect = SqlDialects.from(databaseConfiguration.getDatabaseType());
-        String finalQuery = databaseConfiguration.replacePrefix("DROP TABLE IF EXISTS " + dialect.quoteIdentifier(tableName));
+        String finalQuery = databaseConfiguration.replacePrefix("DROP TABLE IF EXISTS " + dialect.quoteTableReference(tableName));
         if (databaseConfiguration.isDebug()) {
             logger.info("Executing SQL: " + finalQuery);
         }

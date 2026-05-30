@@ -26,9 +26,9 @@ public class RenameExecutor implements Executor {
         SqlDialect dialect = SqlDialects.from(databaseConfiguration.getDatabaseType());
 
         StringBuilder alterTableSQL = new StringBuilder("ALTER TABLE ");
-        alterTableSQL.append(dialect.quoteIdentifier(this.schema.getTableName()));
+        alterTableSQL.append(dialect.quoteTableReference(this.schema.getTableName()));
         alterTableSQL.append(" RENAME TO ");
-        alterTableSQL.append(dialect.quoteIdentifier(this.schema.getNewTableName()));
+        alterTableSQL.append(dialect.quoteTableReference(this.schema.getNewTableName()));
 
         String finalQuery = databaseConfiguration.replacePrefix(alterTableSQL.toString());
         if (databaseConfiguration.isDebug()) {

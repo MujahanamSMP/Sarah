@@ -30,7 +30,7 @@ public class UpdateBatchRequest implements Executor {
 
         SqlDialect dialect = SqlDialects.from(databaseConfiguration.getDatabaseType());
         Schema firstSchema = schemas.get(0);
-        StringBuilder updateQuery = new StringBuilder("UPDATE " + dialect.quoteIdentifier(firstSchema.getTableName()));
+        StringBuilder updateQuery = new StringBuilder("UPDATE " + dialect.quoteTableReference(firstSchema.getTableName()));
 
         if (!firstSchema.getJoinConditions().isEmpty()) {
             for (JoinCondition join : firstSchema.getJoinConditions()) {

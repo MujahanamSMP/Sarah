@@ -31,7 +31,7 @@ public class InsertAllRequest implements Executor {
         SqlDialect dialect = SqlDialects.from(databaseConfiguration.getDatabaseType());
 
         StringBuilder insertBuilder = new StringBuilder("INSERT INTO ")
-                .append(dialect.quoteIdentifier(this.toTableName))
+                .append(dialect.quoteTableReference(this.toTableName))
                 .append(" (");
         List<String> quotedColumns = new ArrayList<String>();
 
@@ -45,7 +45,7 @@ public class InsertAllRequest implements Executor {
         String columnsSql = String.join(", ", quotedColumns);
         insertBuilder.append(columnsSql).append(") ");
         insertBuilder.append("SELECT ").append(columnsSql);
-        insertBuilder.append(" FROM ").append(dialect.quoteIdentifier(this.schema.getTableName()));
+        insertBuilder.append(" FROM ").append(dialect.quoteTableReference(this.schema.getTableName()));
 
         String insertQuery = databaseConfiguration.replacePrefix(insertBuilder.toString());
 

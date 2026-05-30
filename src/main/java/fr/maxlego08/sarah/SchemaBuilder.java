@@ -504,7 +504,7 @@ public class SchemaBuilder implements Schema {
     @Override
     public long executeSelectCount(DatabaseConnection databaseConnection, Logger logger) throws SQLException {
         SqlDialect dialect = SqlDialects.from(databaseConnection.getDatabaseConfiguration().getDatabaseType());
-        StringBuilder selectQuery = new StringBuilder("SELECT COUNT(*) FROM " + quoteTableReference(dialect, tableName));
+        StringBuilder selectQuery = new StringBuilder("SELECT COUNT(*) FROM " + dialect.quoteTableReference(tableName));
         this.whereConditions(selectQuery, dialect);
 
         String finalQuery = databaseConnection.getDatabaseConfiguration().replacePrefix(selectQuery.toString());
@@ -543,9 +543,9 @@ public class SchemaBuilder implements Schema {
 
         StringBuilder selectQuery;
         if (this.isDistinct) {
-            selectQuery = new StringBuilder("SELECT DISTINCT " + selectedValues + " FROM " + quoteTableReference(dialect, this.tableName));
+            selectQuery = new StringBuilder("SELECT DISTINCT " + selectedValues + " FROM " + dialect.quoteTableReference(this.tableName));
         } else {
-            selectQuery = new StringBuilder("SELECT " + selectedValues + " FROM " + quoteTableReference(dialect, this.tableName));
+            selectQuery = new StringBuilder("SELECT " + selectedValues + " FROM " + dialect.quoteTableReference(this.tableName));
         }
 
         if (!this.joinConditions.isEmpty()) {
@@ -587,41 +587,6 @@ public class SchemaBuilder implements Schema {
         }
 
         return results;
-    }
-
-    private String quoteTableReference(SqlDialect dialect, String tableReference) {
-        if (tableReference == null) {
-            throw new IllegalArgumentException("Table reference cannot be null");
-        }
-
-        String trimmed = tableReference.trim();
-        if (trimmed.isEmpty()) {
-            throw new IllegalArgumentException("Table reference cannot be empty");
-        }
-
-        int firstWhitespace = -1;
-        for (int i = 0; i < trimmed.length(); i++) {
-            if (Character.isWhitespace(trimmed.charAt(i))) {
-                firstWhitespace = i;
-                break;
-            }
-        }
-
-        String base = firstWhitespace == -1 ? trimmed : trimmed.substring(0, firstWhitespace);
-        String remainder = firstWhitespace == -1 ? "" : trimmed.substring(firstWhitespace).trim();
-
-        String quotedBase;
-        if (base.indexOf('.') != -1) {
-            String[] parts = base.split("\\.");
-            quotedBase = Arrays.stream(parts)
-                    .filter(part -> part != null && !part.isEmpty())
-                    .map(part -> dialect.quoteIdentifier(part))
-                    .collect(Collectors.joining("."));
-        } else {
-            quotedBase = dialect.quoteIdentifier(base);
-        }
-
-        return remainder.isEmpty() ? quotedBase : quotedBase + " " + remainder;
     }
 
     @Override

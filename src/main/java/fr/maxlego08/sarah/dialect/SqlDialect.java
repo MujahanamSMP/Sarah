@@ -12,6 +12,21 @@ public interface SqlDialect {
 
     String quoteIdentifier(String name);
 
+    /**
+     * Quotes a table reference, supporting schema-qualified names and optional aliases.
+     * <p>
+     * Examples:
+     * <ul>
+     *     <li>{@code users} -&gt; {@code "users"}</li>
+     *     <li>{@code main.users} -&gt; {@code "main"."users"}</li>
+     *     <li>{@code users u} -&gt; {@code "users" u}</li>
+     * </ul>
+     *
+     * @param tableReference The raw table reference as provided by callers
+     * @return The quoted table reference
+     */
+    String quoteTableReference(String tableReference);
+
     String qualifyIdentifier(String prefix, String column);
 
     String driverClassName();

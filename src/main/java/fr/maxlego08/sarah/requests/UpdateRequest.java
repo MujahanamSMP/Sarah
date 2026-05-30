@@ -29,7 +29,7 @@ public class UpdateRequest implements Executor {
     public int execute(DatabaseConnection databaseConnection, DatabaseConfiguration databaseConfiguration, Logger logger) {
         SqlDialect dialect = SqlDialects.from(databaseConfiguration.getDatabaseType());
 
-        StringBuilder updateQuery = new StringBuilder("UPDATE " + dialect.quoteIdentifier(this.schema.getTableName()));
+        StringBuilder updateQuery = new StringBuilder("UPDATE " + dialect.quoteTableReference(this.schema.getTableName()));
 
         if (!this.schema.getJoinConditions().isEmpty()) {
             for (JoinCondition join : this.schema.getJoinConditions()) {

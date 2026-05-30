@@ -21,6 +21,13 @@ public class PostgreSqlTypeMappingTest {
     }
 
     @Test
+    public void testMappingDoesNotMutateOriginalType() {
+        ColumnDefinition column = new ColumnDefinition("data", "LONGTEXT");
+        column.build(config, postgres);
+        assertEquals("LONGTEXT", column.getType());
+    }
+
+    @Test
     public void testMediumTextMappedToText() {
         ColumnDefinition column = new ColumnDefinition("content", "MEDIUMTEXT");
         String result = column.build(config, postgres);

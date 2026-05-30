@@ -32,7 +32,7 @@ public class UpsertBatchRequest implements Executor {
 
         SqlDialect dialect = SqlDialects.from(databaseConfiguration.getDatabaseType());
         Schema firstSchema = schemas.get(0);
-        StringBuilder insertQuery = new StringBuilder("INSERT INTO " + dialect.quoteIdentifier(firstSchema.getTableName()) + " (");
+        StringBuilder insertQuery = new StringBuilder("INSERT INTO " + dialect.quoteTableReference(firstSchema.getTableName()) + " (");
         StringBuilder valuesQuery = new StringBuilder("VALUES ");
 
         List<Object> values = new ArrayList<>();

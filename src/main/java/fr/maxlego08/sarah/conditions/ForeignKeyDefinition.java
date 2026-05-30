@@ -34,7 +34,7 @@ public class ForeignKeyDefinition {
 
     public String render(SqlDialect dialect) {
         return "FOREIGN KEY (" + dialect.quoteIdentifier(sourceColumn) + ") REFERENCES " +
-                dialect.quoteIdentifier(referenceTable) + "(" + dialect.quoteIdentifier(referenceColumn) + ")" +
+                dialect.quoteTableReference(referenceTable) + "(" + dialect.quoteIdentifier(referenceColumn) + ")" +
                 (cascade ? " ON DELETE CASCADE" : "");
     }
 }

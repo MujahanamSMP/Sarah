@@ -7,9 +7,12 @@ import fr.maxlego08.sarah.exceptions.DatabaseException;
 import fr.maxlego08.sarah.logger.Logger;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 
 public class PostgreSqlDialect extends AbstractSqlDialect {
@@ -39,19 +42,8 @@ public class PostgreSqlDialect extends AbstractSqlDialect {
     }
 
     @Override
-    public String columnType(ColumnDefinition column) {
-        String baseType = column.getType();
-        if (baseType != null) {
-            String mapped = mapType(baseType);
-            if (!mapped.equals(baseType)) {
-                column.setType(mapped);
-            }
-        }
-        return super.columnType(column);
-    }
-
-    private String mapType(String type) {
-        switch (type.toUpperCase(java.util.Locale.ROOT)) {
+    protected String mapColumnType(ColumnDefinition column, String baseType) {
+        switch (baseType.toUpperCase(Locale.ROOT)) {
             case "LONGTEXT":
             case "MEDIUMTEXT":
             case "TINYTEXT":
@@ -62,7 +54,7 @@ public class PostgreSqlDialect extends AbstractSqlDialect {
             case "TINYBLOB":
                 return "BYTEA";
             default:
-                return type;
+                return baseType;
         }
     }
 
@@ -75,13 +67,14 @@ public class PostgreSqlDialect extends AbstractSqlDialect {
         List<ColumnDefinition> missing = new ArrayList<ColumnDefinition>();
 
         try (Connection sqlConnection = connection.getConnection()) {
+            TableRef ref = resolveTableRef(sqlConnection, tableName);
             for (ColumnDefinition column : expectedColumns) {
                 String columnName = column.getName();
                 long count = countExistingColumn(
                         sqlConnection,
                         "SELECT COUNT(*) FROM information_schema.columns WHERE table_name = ? AND table_schema = ? AND column_name = ?",
-                        tableName,
-                        "public",
+                        ref.table,
+                        ref.schema,
                         columnName
                 );
                 if (count == 0) {
@@ -96,5 +89,73 @@ public class PostgreSqlDialect extends AbstractSqlDialect {
         }
 
         return missing;
+    }
+
+    private TableRef resolveTableRef(Connection sqlConnection, String tableReference) throws SQLException {
+        String trimmed = tableReference == null ? "" : tableReference.trim();
+        if (trimmed.isEmpty()) {
+            throw new IllegalArgumentException("tableName cannot be null or empty");
+        }
+
+        String base = trimmed;
+        int firstWhitespace = -1;
+        for (int i = 0; i < trimmed.length(); i++) {
+            if (Character.isWhitespace(trimmed.charAt(i))) {
+                firstWhitespace = i;
+                break;
+            }
+        }
+        if (firstWhitespace != -1) {
+            base = trimmed.substring(0, firstWhitespace);
+        }
+
+        String schema = null;
+        String table = base;
+        int dotIndex = base.lastIndexOf('.');
+        if (dotIndex != -1) {
+            schema = base.substring(0, dotIndex);
+            table = base.substring(dotIndex + 1);
+        }
+
+        if (schema == null || schema.isEmpty()) {
+            schema = safeCurrentSchema(sqlConnection);
+        }
+        if (schema == null || schema.isEmpty()) {
+            schema = "public";
+        }
+
+        return new TableRef(schema, table);
+    }
+
+    private String safeCurrentSchema(Connection sqlConnection) throws SQLException {
+        try {
+            String schema = sqlConnection.getSchema();
+            if (schema != null && !schema.trim().isEmpty()) {
+                return schema.trim();
+            }
+        } catch (Throwable ignored) {
+            // Some drivers may not support getSchema consistently.
+        }
+
+        try (PreparedStatement statement = sqlConnection.prepareStatement("SELECT current_schema()")) {
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    String schema = resultSet.getString(1);
+                    return schema == null ? null : schema.trim();
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private static final class TableRef {
+        private final String schema;
+        private final String table;
+
+        private TableRef(String schema, String table) {
+            this.schema = schema;
+            this.table = table;
+        }
     }
 }

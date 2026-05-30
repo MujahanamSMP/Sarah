@@ -41,6 +41,46 @@ public abstract class AbstractSqlDialect implements SqlDialect {
     }
 
     @Override
+    public String quoteTableReference(String tableReference) {
+        if (tableReference == null) {
+            throw new IllegalArgumentException("Table reference cannot be null");
+        }
+
+        String trimmed = tableReference.trim();
+        if (trimmed.isEmpty()) {
+            throw new IllegalArgumentException("Table reference cannot be empty");
+        }
+
+        int firstWhitespace = -1;
+        for (int i = 0; i < trimmed.length(); i++) {
+            if (Character.isWhitespace(trimmed.charAt(i))) {
+                firstWhitespace = i;
+                break;
+            }
+        }
+
+        String base = firstWhitespace == -1 ? trimmed : trimmed.substring(0, firstWhitespace);
+        String remainder = firstWhitespace == -1 ? "" : trimmed.substring(firstWhitespace).trim();
+
+        String quotedBase;
+        int dotIndex = base.indexOf('.');
+        if (dotIndex != -1) {
+            String[] parts = base.split("\\.");
+            List<String> quotedParts = new ArrayList<String>(parts.length);
+            for (String part : parts) {
+                if (part != null && !part.isEmpty()) {
+                    quotedParts.add(quoteIdentifier(part));
+                }
+            }
+            quotedBase = String.join(".", quotedParts);
+        } else {
+            quotedBase = quoteIdentifier(base);
+        }
+
+        return remainder.isEmpty() ? quotedBase : quotedBase + " " + remainder;
+    }
+
+    @Override
     public String qualifyIdentifier(String prefix, String column) {
         if (prefix == null || prefix.trim().isEmpty()) {
             return quoteIdentifier(column);
@@ -76,6 +116,8 @@ public abstract class AbstractSqlDialect implements SqlDialect {
             baseType = "TEXT";
         }
 
+        baseType = mapColumnType(column, baseType);
+
         if (useIntegerTypeForAutoIncrementPrimaryKey(column) && isIntegerType(baseType)) {
             baseType = "INTEGER";
         }
@@ -89,6 +131,10 @@ public abstract class AbstractSqlDialect implements SqlDialect {
             return baseType + "(" + length + ")";
         }
 
+        return baseType;
+    }
+
+    protected String mapColumnType(ColumnDefinition column, String baseType) {
         return baseType;
     }
 

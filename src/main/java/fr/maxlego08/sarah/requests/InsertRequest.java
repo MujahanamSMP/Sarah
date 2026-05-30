@@ -30,7 +30,7 @@ public class InsertRequest implements Executor {
     public int execute(DatabaseConnection databaseConnection, DatabaseConfiguration databaseConfiguration, Logger logger) {
         SqlDialect dialect = SqlDialects.from(databaseConfiguration.getDatabaseType());
 
-        StringBuilder insertQuery = new StringBuilder("INSERT INTO " + dialect.quoteIdentifier(this.schema.getTableName()) + " (");
+        StringBuilder insertQuery = new StringBuilder("INSERT INTO " + dialect.quoteTableReference(this.schema.getTableName()) + " (");
         StringBuilder valuesQuery = new StringBuilder("VALUES (");
 
         List<Object> values = new ArrayList<>();

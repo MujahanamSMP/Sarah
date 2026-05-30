@@ -30,7 +30,7 @@ public class AlterRequest implements Executor {
         SqlDialect dialect = SqlDialects.from(databaseConfiguration.getDatabaseType());
 
         StringBuilder alterTableSQL = new StringBuilder("ALTER TABLE ");
-        alterTableSQL.append(dialect.quoteIdentifier(this.schema.getTableName())).append(" ");
+        alterTableSQL.append(dialect.quoteTableReference(this.schema.getTableName())).append(" ");
 
         List<String> columnSQLs = new ArrayList<>();
         for (ColumnDefinition column : this.schema.getColumns()) {

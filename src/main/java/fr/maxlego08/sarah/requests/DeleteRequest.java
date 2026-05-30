@@ -24,7 +24,7 @@ public class DeleteRequest implements Executor {
     @Override
     public int execute(DatabaseConnection databaseConnection, DatabaseConfiguration databaseConfiguration, Logger logger) {
         SqlDialect dialect = SqlDialects.from(databaseConfiguration.getDatabaseType());
-        StringBuilder sql = new StringBuilder("DELETE FROM ").append(dialect.quoteIdentifier(schemaBuilder.getTableName()));
+        StringBuilder sql = new StringBuilder("DELETE FROM ").append(dialect.quoteTableReference(schemaBuilder.getTableName()));
         schemaBuilder.whereConditions(sql, dialect);
 
         String finalQuery = databaseConfiguration.replacePrefix(sql.toString());

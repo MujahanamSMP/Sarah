@@ -33,7 +33,7 @@ public class CreateIndexRequest implements Executor {
 
         indexTableSQL.append(dialect.quoteIdentifier(indexName));
         indexTableSQL.append(" ON ");
-        indexTableSQL.append(dialect.quoteIdentifier(tableName));
+        indexTableSQL.append(dialect.quoteTableReference(tableName));
         indexTableSQL.append(" (");
         indexTableSQL.append(dialect.quoteIdentifier(column.getName()));
         indexTableSQL.append(" )");

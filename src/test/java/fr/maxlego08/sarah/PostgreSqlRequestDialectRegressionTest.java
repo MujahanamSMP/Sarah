@@ -5,6 +5,7 @@ import fr.maxlego08.sarah.logger.Logger;
 import fr.maxlego08.sarah.requests.DeleteRequest;
 import fr.maxlego08.sarah.requests.InsertAllRequest;
 import fr.maxlego08.sarah.requests.InsertBatchRequest;
+import fr.maxlego08.sarah.requests.InsertRequest;
 import fr.maxlego08.sarah.requests.UpdateBatchRequest;
 import fr.maxlego08.sarah.requests.UpdateRequest;
 import org.junit.jupiter.api.Test;
@@ -49,6 +50,29 @@ public class PostgreSqlRequestDialectRegressionTest {
 
         assertEquals("DELETE FROM \"users\" WHERE \"email\" = ?", capturedSql.get());
         verify(preparedStatement).setObject(1, "sarah@example.com");
+    }
+
+    @Test
+    public void testDeleteRequestQuotesAliasWithoutQuotingWhitespace() throws Exception {
+        DatabaseConfiguration configuration = DatabaseConfiguration.createPostgreSql("u", "p", 5432, "localhost", "db");
+        DatabaseConnection databaseConnection = mock(DatabaseConnection.class);
+        Connection sqlConnection = mock(Connection.class);
+        PreparedStatement preparedStatement = mock(PreparedStatement.class);
+        AtomicReference<String> capturedSql = new AtomicReference<String>();
+
+        when(databaseConnection.getConnection()).thenReturn(sqlConnection);
+        when(sqlConnection.prepareStatement(anyString())).thenAnswer(invocation -> {
+            capturedSql.set(invocation.getArgument(0));
+            return preparedStatement;
+        });
+        when(preparedStatement.executeUpdate()).thenReturn(1);
+
+        Schema schema = SchemaBuilder.delete("users u");
+        schema.where("email", "sarah@example.com");
+
+        new DeleteRequest(schema).execute(databaseConnection, configuration, logger);
+
+        assertEquals("DELETE FROM \"users\" u WHERE \"email\" = ?", capturedSql.get());
     }
 
     @Test
@@ -102,6 +126,30 @@ public class PostgreSqlRequestDialectRegressionTest {
         new InsertBatchRequest(Arrays.asList(first, second)).execute(databaseConnection, configuration, logger);
 
         assertEquals("INSERT INTO \"users\" (\"name\") VALUES (?), (?)", capturedSql.get());
+    }
+
+    @Test
+    public void testInsertRequestQuotesSchemaQualifiedTableName() throws Exception {
+        DatabaseConfiguration configuration = DatabaseConfiguration.createPostgreSql("u", "p", 5432, "localhost", "db");
+        DatabaseConnection databaseConnection = mock(DatabaseConnection.class);
+        Connection sqlConnection = mock(Connection.class);
+        PreparedStatement preparedStatement = mock(PreparedStatement.class);
+        ResultSet generatedKeys = mock(ResultSet.class);
+        AtomicReference<String> capturedSql = new AtomicReference<String>();
+
+        when(databaseConnection.getConnection()).thenReturn(sqlConnection);
+        when(sqlConnection.prepareStatement(anyString(), anyInt())).thenAnswer(invocation -> {
+            capturedSql.set(invocation.getArgument(0));
+            return preparedStatement;
+        });
+        when(preparedStatement.executeUpdate()).thenReturn(1);
+        when(preparedStatement.getGeneratedKeys()).thenReturn(generatedKeys);
+        when(generatedKeys.next()).thenReturn(false);
+
+        Schema schema = SchemaBuilder.insert("main.users", builder -> builder.string("name", "Sarah"));
+        new InsertRequest(schema).execute(databaseConnection, configuration, logger);
+
+        assertEquals("INSERT INTO \"main\".\"users\" (\"name\") VALUES (?)", capturedSql.get());
     }
 
     @Test
